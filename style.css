@@ -161,9 +161,20 @@ body {
     linear-gradient(45deg, transparent 45%, var(--danger) 45%, var(--danger) 55%, transparent 55%),
     var(--panel-2);
 }
-input[type="color"].swatch-custom {
-  width: 28px; height: 28px; padding: 0; border: 2px solid var(--border);
-  border-radius: 6px; background: none; cursor: pointer;
+.swatch.swatch-custom {
+  position: relative;
+  overflow: hidden;
+  background: conic-gradient(from 0deg, #e0453f, #e0a13f, #d9d33f, #5fbf5f, #3f8fbf, #6b5fc7, #b25a9e, #e0453f);
+}
+.swatch.swatch-custom input[type="color"] {
+  position: absolute;
+  inset: -4px;
+  width: calc(100% + 8px);
+  height: calc(100% + 8px);
+  padding: 0;
+  border: none;
+  opacity: 0;
+  cursor: pointer;
 }
 
 /* presets */

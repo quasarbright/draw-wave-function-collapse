@@ -15,58 +15,59 @@
 <body>
   <div class="loom-page">
     <div class="hero">
-      <h1>Draw a seed. <em>Weave</em> a world.</h1>
+      <h1>Extend a <em>pattern</em> you draw.</h1>
       <p class="tag">
-        Paint a tiny pattern and overlapping wave function collapse grows it into a much
-        larger world — every neighborhood in the output echoes something from your seed.
+        Draw a small pattern, then generate a larger image made of the same tiles —
+        using wave function collapse.
       </p>
       <div class="loom-signature" id="loomSignature"></div>
       <about-modal label="how this works">
         <h2 class="title">Overlapping wave function collapse</h2>
         <p class="intro">
-          The algorithm never invents new tiles — it only ever reassembles pieces it already
-          saw in your seed, so the output always feels like it belongs to the same world.
+          This only reuses tiles it already saw in your drawing — it doesn't invent new
+          ones, so the output stays visually consistent with your pattern.
         </p>
         <p class="section-label">Learning</p>
         <p>
-          It slides an <code>N&times;N</code> window over your seed (wrapping around the
-          edges) and records every distinct little pattern it finds, plus how often each one
-          occurs. With symmetries on, it also records each pattern's rotations and reflections
-          — a seed with one tree can still produce a forest with trees facing every direction.
+          It scans your pattern with an <code>N&times;N</code> window and records every
+          distinct tile it finds, plus how often each one occurs.
+          With rotations &amp; reflections on, it also records each tile rotated and flipped,
+          so a single drawn tree can end up facing different directions in the output.
         </p>
-        <p class="section-label">Weaving</p>
+        <p class="section-label">Generating</p>
         <p>
-          The output starts as a grid of undecided cells, each able to become any pattern
-          seen during learning. Repeatedly, it collapses the <em>most constrained</em> cell —
-          the one with the fewest remaining options — into a single pattern, chosen randomly
-          in proportion to how often that pattern appeared in your seed. That choice ripples
-          outward: neighboring cells lose any pattern that no longer overlaps consistently.
+          The output starts blank, with every cell able to become any tile seen during
+          learning. It repeatedly picks the <em>most constrained</em> cell — the one with
+          the fewest remaining options — and assigns it a tile at random, weighted by how
+          often that tile appeared in your pattern. Neighboring cells then drop any tile
+          that no longer fits.
         </p>
         <p class="section-label">When it fails</p>
         <p>
-          Sometimes a cell runs out of options entirely — a contradiction. When that happens
-          the loom just starts over; it retries a number of times before giving up and asking
-          you to loosen the seed a little (a smaller pattern size or symmetries on both help).
+          Sometimes a cell runs out of valid tiles. When that happens it just restarts, up
+          to a set number of tries. If it keeps failing, try a smaller pattern size, turn on
+          rotations &amp; reflections, or draw a bit more of the pattern.
         </p>
       </about-modal>
     </div>
 
     <div class="workspace">
       <div class="loom-panel">
-        <p class="loom-section-title">Seed</p>
+        <p class="loom-section-title">Pattern</p>
 
         <div class="size-row">
           <div>
-            <label for="seedSizeSel">Seed size</label>
+            <label for="seedSizeSel">Canvas size</label>
             <select id="seedSizeSel">
+              <option value="4">4×4</option>
               <option value="8">8×8</option>
-              <option value="12" selected>12×12</option>
-              <option value="16">16×16</option>
+              <option value="12">12×12</option>
+              <option value="16" selected>16×16</option>
               <option value="20">20×20</option>
             </select>
           </div>
           <div>
-            <label for="outSizeSel">World size</label>
+            <label for="outSizeSel">Output size</label>
             <select id="outSizeSel">
               <option value="32">32×32</option>
               <option value="48" selected>48×48</option>
@@ -82,10 +83,15 @@
 
         <div class="palette" id="palette"></div>
 
+        <div class="btn-row">
+          <button class="btn" id="clearBtn">Clear canvas</button>
+          <button class="btn" id="copyTextBtn">Copy as text</button>
+        </div>
+
         <p class="loom-section-title">Presets</p>
         <div class="preset-row" id="presetRow"></div>
 
-        <p class="loom-section-title">Loom settings</p>
+        <p class="loom-section-title">Settings</p>
         <div class="advanced-row">
           <label>
             Pattern size
@@ -94,18 +100,17 @@
               <option value="3" selected>3×3</option>
             </select>
           </label>
-          <label class="check"><input type="checkbox" id="symmetryChk" checked /> Rotations &amp; reflections</label>
-          <label class="check"><input type="checkbox" id="tileableChk" checked /> Tileable world</label>
+          <label class="check"><input type="checkbox" id="symmetryChk" /> Rotations &amp; reflections</label>
         </div>
 
-        <button class="btn btn-primary weave-btn" id="weaveBtn">Weave</button>
+        <button class="btn btn-primary weave-btn" id="weaveBtn">Generate</button>
       </div>
 
       <div class="loom-panel">
-        <p class="loom-section-title">World</p>
+        <p class="loom-section-title">Output</p>
         <div class="output-wrap">
           <div class="output-canvas-frame" id="worldFrame">
-            <p class="output-placeholder">Draw a seed, then press Weave.</p>
+            <p class="output-placeholder">Draw a pattern, then press Generate.</p>
           </div>
           <p class="weave-status" id="weaveStatus"></p>
           <button class="btn" id="downloadBtn" disabled>Save PNG</button>

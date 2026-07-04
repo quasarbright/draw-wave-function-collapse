@@ -1,0 +1,8 @@
+{
+  "name": "draw-wave-function-collapse",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

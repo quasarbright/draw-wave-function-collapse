@@ -10,6 +10,10 @@ const S = "#cfb27a"; // sand
 const T = "#2b4a2f"; // tree
 const R = "#6b5b4a"; // rock/path
 const D = "#4a3826"; // dirt
+const SKY = "#8fd0e0"; // sky
+const FL = "#e8c93f"; // flower petal
+const ST = "#3f8f52"; // stem
+const SO = "#8a5a3a"; // soil
 
 export const presets = {
   islands: {
@@ -69,6 +73,25 @@ export const presets = {
       [G, G, G, G, G, G, G, G, G, G, G, G],
     ],
   },
+  flowers: {
+    label: "Flowers",
+    grid: [
+      [SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY],
+      [SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY],
+      [SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY],
+      [SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY],
+      [SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY, SKY],
+      [SKY, FL, SKY, FL, SKY, SKY, FL, SKY, FL, SKY, SKY, FL, SKY, FL, SKY],
+      [SKY, ST, SKY, ST, SKY, SKY, ST, SKY, ST, SKY, SKY, ST, SKY, ST, SKY],
+      [SKY, ST, SKY, ST, SKY, SKY, ST, SKY, ST, SKY, SKY, ST, SKY, ST, SKY],
+      [SKY, FL, SKY, FL, SKY, SKY, FL, SKY, FL, SKY, SKY, FL, SKY, FL, SKY],
+      [SKY, ST, SKY, ST, SKY, SKY, ST, SKY, ST, SKY, SKY, ST, SKY, ST, SKY],
+      [SKY, SKY, ST, SKY, SKY, SKY, SKY, ST, SKY, SKY, SKY, SKY, ST, SKY, SKY],
+      [SKY, SKY, ST, SKY, SKY, SKY, SKY, ST, SKY, SKY, SKY, SKY, ST, SKY, SKY],
+      [SO, SO, SO, SO, SO, SO, SO, SO, SO, SO, SO, SO, SO, SO, SO],
+      [SO, SO, SO, SO, SO, SO, SO, SO, SO, SO, SO, SO, SO, SO, SO],
+    ],
+  },
   checker: {
     label: "Checkerboard",
     grid: [
@@ -82,6 +105,51 @@ export const presets = {
       [R, R, G, G, R, R, G, G],
     ],
   },
+  link: {
+    label: "Link",
+    grid: (() => {
+      const a = "#1c1b26", b = "#e8dfc8";
+      const rows = [
+        "aaaaaaaaaaaa",
+        "abbbbaaaaaaa",
+        "abaabaaaaaaa",
+        "abaaaaaaaaaa",
+        "abbbbbbbaaaa",
+        "aaaaaaabaaaa",
+        "aaaabaabaaaa",
+        "aaaabbbbaaaa",
+        "aaaaaaaaaaaa",
+        "aaaaaaaaaaaa",
+        "aaaaaaaaaaaa",
+        "aaaaaaaaaaaa",
+      ];
+      return rows.map((row) => [...row].map((c) => (c === "a" ? a : b)));
+    })(),
+  },
+  gem: {
+    label: "Gem",
+    grid: (() => {
+      const a = "#1c1b26", b = "#e8dfc8", c = "#c94f4f";
+      const rows = ["aaaa", "bbba", "bcba", "bbba"];
+      const map = { a, b, c };
+      return rows.map((row) => [...row].map((ch) => map[ch]));
+    })(),
+  },
 };
 
-export const defaultPalette = [G, g, W, w, S, T, R, D, "#e8dfc8", "#1c1b26"];
+export const defaultPalette = [
+  "#1c1b26", // near-black
+  "#e8dfc8", // cream
+  "#c94f4f", // red
+  "#d98a3d", // orange
+  "#dcc24a", // yellow
+  G,          // grass green
+  "#3f8f7a", // teal
+  W,          // blue
+  "#6b5fc7", // violet
+  "#b25a9e", // magenta/pink
+  T,          // dark green
+  D,          // brown
+  R,          // stone/gray
+  S,          // sand
+];

@@ -57,12 +57,14 @@ export function extractPatterns(inputGrid, N, { periodicInput = true, symmetry =
     }
   }
 
+  // True iff placing p2 at the cell offset (dx, dy) from p1 is consistent — i.e. the
+  // two N×N windows agree on their overlapping pixels.
   function agrees(p1, p2, dx, dy) {
     const xmin = dx < 0 ? 0 : dx, xmax = dx < 0 ? dx + N : N;
     const ymin = dy < 0 ? 0 : dy, ymax = dy < 0 ? dy + N : N;
     for (let y = ymin; y < ymax; y++) {
       for (let x = xmin; x < xmax; x++) {
-        if (p1[(x - dx) + (y - dy) * N] !== p2[x + y * N]) return false;
+        if (p1[x + y * N] !== p2[(x - dx) + (y - dy) * N]) return false;
       }
     }
     return true;
@@ -130,6 +132,23 @@ export function run(model, outW, outH, { periodicOutput = true, rng = Math.rando
     if (sumsOfOnes[i] === 0) contradiction = true;
   }
 
+  // A pattern with zero initial support in some direction can never legally sit at a
+  // cell that actually has a neighbor in that direction (e.g. a pattern learned from
+  // non-wrapping input that has nothing below it in the source). Ban those up front —
+  // otherwise they'd linger as "possible" forever, since nothing ever decrements them
+  // from zero, and picking one produces a seam the algorithm never notices.
+  for (let i = 0; i < numCells; i++) {
+    const x1 = i % outW, y1 = (i / outW) | 0;
+    for (let t = 0; t < numPatterns; t++) {
+      if (!wave[i][t]) continue;
+      for (let d = 0; d < 4; d++) {
+        const x2 = x1 + DX[d], y2 = y1 + DY[d];
+        const hasNeighbor = periodicOutput || (x2 >= 0 && y2 >= 0 && x2 < outW && y2 < outH);
+        if (hasNeighbor && compatible[i][t][d] === 0) { ban(i, t); break; }
+      }
+    }
+  }
+
   function propagate() {
     while (stack.length && !contradiction) {
       const [i1, t1] = stack.pop();
@@ -151,6 +170,9 @@ export function run(model, outW, outH, { periodicOutput = true, rng = Math.rando
       }
     }
   }
+
+  propagate(); // cascade the initial bans above
+  if (contradiction) return null;
 
   function nextCell() {
     let min = Infinity, argmin = -1;

@@ -1,16 +1,15 @@
 import { generate } from "./wfc.js";
 import { presets, defaultPalette } from "./presets.js";
 
-const EMPTY_COLOR = "#241f30"; // eraser color — just another paintable tile
+const EMPTY_COLOR = "#1c1b26"; // eraser color — matches the panel background
 
 /* ---------------- state ---------------- */
-let seedSize = 12;
-let seedGrid = makeGrid(seedSize, defaultPalette[0]);
-let activeColor = defaultPalette[0];
+let seedSize = 16;
+let seedGrid = makeGrid(seedSize, EMPTY_COLOR);
+let activeColor = defaultPalette[5]; // grass green — first non-neutral color
 let outSize = 48;
 let patternN = 3;
-let symmetry = true;
-let tileable = true;
+let symmetry = false;
 
 function makeGrid(size, fill) {
   return Array.from({ length: size }, () => new Array(size).fill(fill));
@@ -26,10 +25,11 @@ const seedSizeSel = document.getElementById("seedSizeSel");
 const outSizeSel = document.getElementById("outSizeSel");
 const patternSel = document.getElementById("patternSel");
 const symmetryChk = document.getElementById("symmetryChk");
-const tileableChk = document.getElementById("tileableChk");
 const weaveBtn = document.getElementById("weaveBtn");
 const statusEl = document.getElementById("weaveStatus");
 const downloadBtn = document.getElementById("downloadBtn");
+const clearBtn = document.getElementById("clearBtn");
+const copyTextBtn = document.getElementById("copyTextBtn");
 
 /* ---------------- seed canvas rendering + painting ---------------- */
 const SEED_DISPLAY = 340;
@@ -90,12 +90,15 @@ function renderPalette() {
   eraser.addEventListener("click", () => { activeColor = EMPTY_COLOR; renderPalette(); });
   paletteEl.appendChild(eraser);
 
+  const customWrap = document.createElement("label");
+  customWrap.className = "swatch swatch-custom";
+  customWrap.title = "Pick a custom color";
   const custom = document.createElement("input");
   custom.type = "color";
-  custom.className = "swatch-custom";
-  custom.title = "Custom color";
+  custom.value = /^#[0-9a-f]{6}$/i.test(activeColor) ? activeColor : "#ffffff";
   custom.addEventListener("input", () => { activeColor = custom.value; renderPalette(); });
-  paletteEl.appendChild(custom);
+  customWrap.appendChild(custom);
+  paletteEl.appendChild(customWrap);
 }
 
 /* ---------------- presets ---------------- */
@@ -125,7 +128,7 @@ function loadPreset(preset) {
 /* ---------------- size / option controls ---------------- */
 seedSizeSel.addEventListener("change", () => {
   const newSize = Number(seedSizeSel.value);
-  const fresh = makeGrid(newSize, defaultPalette[0]);
+  const fresh = makeGrid(newSize, EMPTY_COLOR);
   for (let y = 0; y < Math.min(newSize, seedSize); y++) {
     for (let x = 0; x < Math.min(newSize, seedSize); x++) fresh[y][x] = seedGrid[y][x];
   }
@@ -134,9 +137,26 @@ seedSizeSel.addEventListener("change", () => {
   drawSeed();
 });
 outSizeSel.addEventListener("change", () => { outSize = Number(outSizeSel.value); });
+clearBtn.addEventListener("click", () => { seedGrid = makeGrid(seedSize, EMPTY_COLOR); drawSeed(); });
+
+copyTextBtn.addEventListener("click", async () => {
+  const letters = "abcdefghijklmnopqrstuvwxyz";
+  const colorToLetter = new Map();
+  const rows = seedGrid.map((row) =>
+    row.map((color) => {
+      if (!colorToLetter.has(color)) colorToLetter.set(color, letters[colorToLetter.size]);
+      return colorToLetter.get(color);
+    }).join("")
+  );
+  const legend = [...colorToLetter.entries()].map(([color, letter]) => `${letter}=${color}`).join(" ");
+  const text = `${seedSize}x${seedSize}\nlegend: ${legend}\n${rows.join("\n")}`;
+  await navigator.clipboard.writeText(text);
+  const original = copyTextBtn.textContent;
+  copyTextBtn.textContent = "Copied!";
+  setTimeout(() => { copyTextBtn.textContent = original; }, 1200);
+});
 patternSel.addEventListener("change", () => { patternN = Number(patternSel.value); });
 symmetryChk.addEventListener("change", () => { symmetry = symmetryChk.checked; });
-tileableChk.addEventListener("change", () => { tileable = tileableChk.checked; });
 
 /* ---------------- weave ---------------- */
 let lastWorldCanvas = null;
@@ -163,24 +183,27 @@ function renderWorld(grid) {
 
 weaveBtn.addEventListener("click", async () => {
   weaveBtn.disabled = true;
-  statusEl.textContent = "weaving…";
+  statusEl.textContent = "generating…";
   statusEl.classList.remove("is-error");
   await new Promise((r) => setTimeout(r, 20)); // let the status paint before the sync compute
   try {
+    // A 4x4 canvas is too small to reliably support a 3x3 pattern window without
+    // wraparound (only 4 non-periodic samples exist) — fall back to 2x2 there.
+    const effectiveN = seedSize <= 4 ? Math.min(patternN, 2) : patternN;
     const out = generate(seedGrid, {
-      N: patternN,
+      N: effectiveN,
       outW: outSize,
       outH: outSize,
       symmetry,
-      periodicInput: true,
-      periodicOutput: tileable,
-      attempts: 30,
+      periodicInput: false,
+      periodicOutput: false,
+      attempts: 100,
     });
     if (!out) {
-      statusEl.textContent = "Couldn't weave a consistent world from this seed — try a smaller pattern size, enabling symmetries, or a busier seed.";
+      statusEl.textContent = "No valid layout found. Try a smaller pattern size, turn on rotations & reflections, or draw a bit more of the pattern.";
       statusEl.classList.add("is-error");
     } else {
-      statusEl.textContent = `wove a ${outSize}×${outSize} world from a ${seedSize}×${seedSize} seed`;
+      statusEl.textContent = `Generated ${outSize}×${outSize} from a ${seedSize}×${seedSize} pattern`;
       renderWorld(out);
     }
   } finally {
@@ -191,7 +214,7 @@ weaveBtn.addEventListener("click", async () => {
 downloadBtn.addEventListener("click", () => {
   if (!lastWorldCanvas) return;
   const a = document.createElement("a");
-  a.download = "woven-world.png";
+  a.download = "generated-pattern.png";
   a.href = lastWorldCanvas.toDataURL("image/png");
   a.click();
 });
@@ -215,4 +238,4 @@ function renderSignature() {
 renderPalette();
 renderPresets();
 renderSignature();
-loadPreset(presets.islands);
+drawSeed();
