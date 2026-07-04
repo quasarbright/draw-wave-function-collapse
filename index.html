@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>draw-wave-function-collapse</title>
+  <meta name="description" content="Draw a small pixel-art seed, then weave it into a much larger generated world with overlapping wave function collapse." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://quasarbright.github.io/sketches/shared/cohesion.css" />
+  <script type="module" src="https://quasarbright.github.io/sketches/shared/cohesion.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="loom-page">
+    <div class="hero">
+      <h1>Draw a seed. <em>Weave</em> a world.</h1>
+      <p class="tag">
+        Paint a tiny pattern and overlapping wave function collapse grows it into a much
+        larger world — every neighborhood in the output echoes something from your seed.
+      </p>
+      <div class="loom-signature" id="loomSignature"></div>
+      <about-modal label="how this works">
+        <h2 class="title">Overlapping wave function collapse</h2>
+        <p class="intro">
+          The algorithm never invents new tiles — it only ever reassembles pieces it already
+          saw in your seed, so the output always feels like it belongs to the same world.
+        </p>
+        <p class="section-label">Learning</p>
+        <p>
+          It slides an <code>N&times;N</code> window over your seed (wrapping around the
+          edges) and records every distinct little pattern it finds, plus how often each one
+          occurs. With symmetries on, it also records each pattern's rotations and reflections
+          — a seed with one tree can still produce a forest with trees facing every direction.
+        </p>
+        <p class="section-label">Weaving</p>
+        <p>
+          The output starts as a grid of undecided cells, each able to become any pattern
+          seen during learning. Repeatedly, it collapses the <em>most constrained</em> cell —
+          the one with the fewest remaining options — into a single pattern, chosen randomly
+          in proportion to how often that pattern appeared in your seed. That choice ripples
+          outward: neighboring cells lose any pattern that no longer overlaps consistently.
+        </p>
+        <p class="section-label">When it fails</p>
+        <p>
+          Sometimes a cell runs out of options entirely — a contradiction. When that happens
+          the loom just starts over; it retries a number of times before giving up and asking
+          you to loosen the seed a little (a smaller pattern size or symmetries on both help).
+        </p>
+      </about-modal>
+    </div>
+
+    <div class="workspace">
+      <div class="loom-panel">
+        <p class="loom-section-title">Seed</p>
+
+        <div class="size-row">
+          <div>
+            <label for="seedSizeSel">Seed size</label>
+            <select id="seedSizeSel">
+              <option value="8">8×8</option>
+              <option value="12" selected>12×12</option>
+              <option value="16">16×16</option>
+              <option value="20">20×20</option>
+            </select>
+          </div>
+          <div>
+            <label for="outSizeSel">World size</label>
+            <select id="outSizeSel">
+              <option value="32">32×32</option>
+              <option value="48" selected>48×48</option>
+              <option value="64">64×64</option>
+              <option value="80">80×80</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="seed-wrap">
+          <canvas id="seedCanvas"></canvas>
+        </div>
+
+        <div class="palette" id="palette"></div>
+
+        <p class="loom-section-title">Presets</p>
+        <div class="preset-row" id="presetRow"></div>
+
+        <p class="loom-section-title">Loom settings</p>
+        <div class="advanced-row">
+          <label>
+            Pattern size
+            <select id="patternSel">
+              <option value="2">2×2</option>
+              <option value="3" selected>3×3</option>
+            </select>
+          </label>
+          <label class="check"><input type="checkbox" id="symmetryChk" checked /> Rotations &amp; reflections</label>
+          <label class="check"><input type="checkbox" id="tileableChk" checked /> Tileable world</label>
+        </div>
+
+        <button class="btn btn-primary weave-btn" id="weaveBtn">Weave</button>
+      </div>
+
+      <div class="loom-panel">
+        <p class="loom-section-title">World</p>
+        <div class="output-wrap">
+          <div class="output-canvas-frame" id="worldFrame">
+            <p class="output-placeholder">Draw a seed, then press Weave.</p>
+          </div>
+          <p class="weave-status" id="weaveStatus"></p>
+          <button class="btn" id="downloadBtn" disabled>Save PNG</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <mike-footer></mike-footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
